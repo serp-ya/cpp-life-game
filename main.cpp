@@ -26,7 +26,8 @@ int get_number(std::ifstream& file_data) {
   } catch(std::invalid_argument error) {
     std::cout << "Error by geting number from string: " << buffer_string << std::endl;
     std::cout << error.what() << std::endl;
-    return 0;
+    
+    throw std::logic_error("Can't handle incoming values");
   }
 }
 
@@ -45,7 +46,7 @@ char** create_canvas(int rows, int cols) {
 
   for(int r = 0; r < rows; r++) {
     canvas[r] = new char[cols];
-    
+
     for(int c = 0; c < cols; c++) {
       canvas[r][c] = DEAD_CELL;
     }
@@ -234,39 +235,56 @@ int main() {
   if (!fs_data.is_open()) {
     std::cout << "[ERROR]: File (" << file_name << ") not found!" << std::endl;
     fs_data.close();
-    return -1;
-  }
 
-  const int rows = get_number(fs_data);
-  const int cols = get_number(fs_data);
+    exit(1);
+  }
   
   int init_cells_count = 0;
   int** init_cells = new int*[MAX_INIT_CELLS_COUNT];
+  
+  try {
+    const int rows = get_number(fs_data);
+    const int cols = get_number(fs_data);
 
-  while(!fs_data.eof()) {
-    if (init_cells_count >= MAX_INIT_CELLS_COUNT) {
-      break;
+    while(!fs_data.eof()) {
+      if (init_cells_count >= MAX_INIT_CELLS_COUNT) {
+        break;
+      }
+      const int x = get_number(fs_data);
+      const int y = get_number(fs_data);
+
+      init_cells[init_cells_count] = new int[2];
+      init_cells[init_cells_count][0] = x;
+      init_cells[init_cells_count][1] = y;
+      
+      ++init_cells_count;
     }
-    const int x = get_number(fs_data);
-    const int y = get_number(fs_data);
 
-    init_cells[init_cells_count] = new int[2];
-    init_cells[init_cells_count][0] = x;
-    init_cells[init_cells_count][1] = y;
+    fs_data.close();
+
+    char** canvas = create_canvas(rows, cols);
+    init_canvas(canvas, rows, cols, init_cells, init_cells_count);
+
+    core(canvas, rows, cols, init_cells_count);
+
+    delete_data(init_cells, init_cells_count);
+    init_cells = nullptr;
+    canvas = nullptr;
+  } catch (std::logic_error logic_error) {
+    std::cout << logic_error.what() << std::endl;
+
+    delete_data(init_cells, init_cells_count);
+    init_cells = nullptr;
+
+    exit(2);
+  } catch (...) {
+    std::cout << "Unhandled error." << std::endl;
+
+    delete_data(init_cells, init_cells_count);
+    init_cells = nullptr;
     
-    ++init_cells_count;
+    exit(3);
   }
-
-  fs_data.close();
-
-  char** canvas = create_canvas(rows, cols);
-  init_canvas(canvas, rows, cols, init_cells, init_cells_count);
-
-  core(canvas, rows, cols, init_cells_count);
-
-  delete_data(init_cells, init_cells_count);
-  init_cells = nullptr;
-  canvas = nullptr;
 
   return 0;
 }
