@@ -47,6 +47,7 @@ char** create_canvas(int rows, int cols) {
   for(int r = 0; r < rows; r++) {
     canvas[r] = new char[cols];
 
+    // http://joxi.ru/8AnNNJbszLDPnA?d=1
     for(int c = 0; c < cols; c++) {
       canvas[r][c] = DEAD_CELL;
     }
