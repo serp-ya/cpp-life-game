@@ -177,7 +177,7 @@ bool get_canvas_has_changes(char** canvas_a, char** canvas_b, int rows, int cols
 
 // game core function
 void core(char** canvas, int rows, int cols, int init_cells) {
-  char** new_canvas;
+  char** new_canvas = canvas;
   int generation = 1;
 
   // first render
