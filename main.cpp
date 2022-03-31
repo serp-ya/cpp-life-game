@@ -32,7 +32,8 @@ int get_number(std::ifstream& file_data) {
 }
 
 // clean incoming data memory
-void delete_data(int** data, int size) {
+template <typename T>
+void delete_data(T** data, int size) {
   for(int i = 0; i < size; i++) {
     delete[] data[i];
     data[i] = nullptr;
@@ -46,11 +47,7 @@ char** create_canvas(int rows, int cols) {
 
   for(int r = 0; r < rows; r++) {
     canvas[r] = new char[cols];
-
-    // http://joxi.ru/8AnNNJbszLDPnA?d=1
-    for(int c = 0; c < cols; c++) {
-      canvas[r][c] = DEAD_CELL;
-    }
+    std::fill_n(canvas[r], cols, DEAD_CELL);
   }
 
   return canvas;
@@ -78,16 +75,6 @@ void print_canvas(char** canvas, int rows, int cols) {
     }
     std::cout << std::endl;
   }
-}
-
-// just delete canvas
-void delete_canvas(char** canvas, int rows) {
-  for(int r = 0; r < rows; r++) {
-    delete[] canvas[r];
-    canvas[r] = nullptr;
-  }
-
-  delete[] canvas;
 }
 
 // safety get cell value
@@ -190,7 +177,7 @@ bool get_canvas_has_changes(char** canvas_a, char** canvas_b, int rows, int cols
 
 // game core function
 void core(char** canvas, int rows, int cols, int init_cells) {
-  char** new_canvas;
+  char** new_canvas = canvas;
   int generation = 1;
 
   // first render
@@ -205,7 +192,7 @@ void core(char** canvas, int rows, int cols, int init_cells) {
     const bool has_changes = get_canvas_has_changes(canvas, new_canvas, rows, cols);
     const int alive_cells = count_alive_cells(new_canvas, rows, cols);
 
-    delete_canvas(canvas, rows);
+    delete_data<char>(canvas, rows);
     canvas = nullptr;
 
     std::system("clear");
@@ -225,7 +212,7 @@ void core(char** canvas, int rows, int cols, int init_cells) {
     sleep(1);
   }
 
-  delete_canvas(new_canvas, rows);
+  delete_data<char>(new_canvas, rows);
   new_canvas = nullptr;
 }
   
@@ -268,7 +255,7 @@ int main() {
 
     core(canvas, rows, cols, init_cells_count);
 
-    delete_data(init_cells, init_cells_count);
+    delete_data<int>(init_cells, init_cells_count);
     init_cells = nullptr;
     canvas = nullptr;
   } catch (std::logic_error logic_error) {
